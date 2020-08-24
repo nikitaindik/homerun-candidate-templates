@@ -7,4 +7,6 @@
 // @author       <%= author %>
 // @match        https://app.homerun.co/*
 // @grant        none
+// @updateURL    <%= publishUrl %>
+// @downloadURL  <%= publishUrl %>
 // ==/UserScript==

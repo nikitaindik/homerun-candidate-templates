@@ -32,13 +32,11 @@ export function changeState(entryId, fieldType, value) {
 }
 
 function changeEntryInState(savedSettings, entryId, fieldType, value) {
-  const entryToChange = savedSettings.entries.find((entry) => entry.entryId === entryId);
-  const entriesWithoutChanged = savedSettings.entries.filter((entry) => entry !== entryToChange);
+  const entryToChangeIndex = savedSettings.entries.findIndex((entry) => entry.entryId === entryId);
+  const entryToChange = savedSettings.entries[entryToChangeIndex];
+  savedSettings.entries.splice(entryToChangeIndex, 1, { ...entryToChange, [fieldType]: value });
 
-  return {
-    ...savedSettings,
-    entries: [...entriesWithoutChanged, { ...entryToChange, [fieldType]: value }],
-  };
+  return savedSettings;
 }
 
 function changeFieldInState(savedSettings, fieldType, value) {
@@ -56,6 +54,11 @@ function createEmptySettings() {
     },
     entries: [],
   };
+}
+
+export function isPositionAlreadyInSettings(candidatePosition) {
+  const savedSettings = readSettingsFromLocalStorage();
+  return savedSettings.entries.some((entry) => entry.positionName === candidatePosition);
 }
 
 export function readSettingsFromLocalStorage() {

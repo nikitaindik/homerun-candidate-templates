@@ -1,11 +1,11 @@
 {
   "name": "homerun-candidate-templates",
   "title": "HomeRun Candidate Templates",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "Easily create candidate interview notes from Google Docs templates",
   "author": "Nikita Indik",
   "homepage": "https://github.com/nikitaindik/homerun-candidate-templates",
-  "main": "./build.homerun.prod.js",
+  "main": "./build/homerun.prod.js",
   "license": "MIT",
   "devDependencies": {
     "css-loader": "^4.2.1",

@@ -5,9 +5,10 @@ const WrapperPlugin = require('wrapper-webpack-plugin');
 const lodashTemplate = require('lodash.template');
 
 const packageJson = require('./package.json');
+const publishUrl = fs.readFileSync('./.publishUrl', 'utf8');
 
 const userscriptHeaderTemplate = fs.readFileSync(path.resolve(__dirname, 'src', 'userscriptHeader.tpl'), 'utf8');
-const userscriptHeader = lodashTemplate(userscriptHeaderTemplate)(packageJson);
+const userscriptHeader = lodashTemplate(userscriptHeaderTemplate)({ ...packageJson, publishUrl });
 
 module.exports = (env) => {
   const isProductionBuild = env.BUILD_MODE === 'production';

@@ -1,15 +1,13 @@
-import { readSettingsFromLocalStorage, addEntryToState, deleteEntryFromState, changeState } from './state';
+import {
+  readSettingsFromLocalStorage,
+  addEntryToState,
+  deleteEntryFromState,
+  changeState,
+  isPositionAlreadyInSettings,
+} from './state';
 import { wait } from './utils';
 import makeMessenger from './messages';
 import './style.css';
-
-/*
-
-Fix sticky textarea comment
-Add comments to do the auto-update
-Hide .env files and node_modules from git
-
-*/
 
 const CLIENT_ID = process.env.CLIENT_ID;
 const APP_ID = process.env.APP_ID;
@@ -107,6 +105,24 @@ async function copyFile(fileId, copyName, copyFolderId) {
   };
 }
 
+function isEntrySetUpForAction(settings, entry, templateType) {
+  if (!entry) {
+    return false;
+  }
+
+  if (templateType === 'screeningNotes') {
+    const isTemplateSet = !!settings.screeningNotesFolder.folderId;
+    const isFolderSet = !!entry.screeningNotesTemplate.documentId;
+    return isTemplateSet && isFolderSet;
+  }
+
+  if (templateType === 'techInterviewNotes') {
+    const isTemplateSet = !!entry.techInterviewNotesFolder.folderId;
+    const isFolderSet = !!entry.techInterviewNotesTemplate.documentId;
+    return isTemplateSet && isFolderSet;
+  }
+}
+
 async function createGoogleDoc(templateType, templateTitle) {
   const isCandidateModalOpen = document.location.search.includes('candidateModalId=');
 
@@ -115,13 +131,12 @@ async function createGoogleDoc(templateType, templateTitle) {
     return;
   }
 
-  const candidatePosition = document.querySelector('[class^="JobPageTitle__title"]').innerText;
+  const candidatePosition = getCandidatePosition();
   const settings = readSettingsFromLocalStorage();
   const entryForThisPosition = settings.entries.find((entry) => entry.positionName === candidatePosition);
 
-  const isTemplateAvailableForPosition = !!entryForThisPosition;
-  if (!isTemplateAvailableForPosition) {
-    showMessage(`You need to select a template for "${candidatePosition}"`, 'error', 3000);
+  if (!isEntrySetUpForAction(settings, entryForThisPosition, templateType)) {
+    showMessage(`You need to set up template and folder for "${candidatePosition}"`, 'error', 3000);
     return;
   }
 
@@ -205,8 +220,8 @@ async function postDocumentUrl(documentUrl, templateTitle) {
       </div>`;
   await wait(200);
   document.querySelector('.Notes__add__39sFn').dispatchEvent(new Event('click'));
-  // await wait(200);
-  // dispatch backspace
+  await wait(500);
+  document.querySelector('.ProseMirror').innerHTML = '';
 }
 
 function handleAuthClick(event) {
@@ -390,9 +405,23 @@ function createEntryHtml({
     `;
 }
 
+function getCandidatePosition() {
+  try {
+    return document.querySelector('[class^="JobPageTitle__title"]').innerText;
+  } catch {
+    return '';
+  }
+}
+
 function handleAddEntryClick(event) {
   if (event.target.classList.contains('add-entry-button')) {
     const entry = createEmptyEntry();
+
+    const candidatePosition = getCandidatePosition();
+
+    if (!isPositionAlreadyInSettings(candidatePosition)) {
+      entry.positionName = candidatePosition;
+    }
 
     addEntryToState(entry);
     event.target.insertAdjacentHTML('beforebegin', createEntryHtml(entry));

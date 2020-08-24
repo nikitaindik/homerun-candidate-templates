@@ -149,7 +149,7 @@
   background-color: red;
 }
 
-.picker-dialog {
+.picker.picker-dialog {
   z-index: 900002;
 }
 
@@ -206,4 +206,8 @@
   height: 100%;
   background: currentColor;
   width: 4px;
+}
+
+.add-entry-button {
+  margin-bottom: 4px;
 }
