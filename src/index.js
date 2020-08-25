@@ -1,3 +1,4 @@
+import renderTemplate from 'lodash.template';
 import {
   readSettingsFromLocalStorage,
   addEntryToState,
@@ -7,7 +8,9 @@ import {
 } from './state';
 import { wait } from './utils';
 import makeMessenger from './messages';
-import './style.css';
+import styles from './style.css';
+
+import entryTemplate from './entry.tpl';
 
 const CLIENT_ID = process.env.CLIENT_ID;
 const APP_ID = process.env.APP_ID;
@@ -32,44 +35,44 @@ createScreeningNotesButton.innerText = 'Add "Screening notes"';
 createScreeningNotesButton.onclick = () => {
   createGoogleDoc('screeningNotes', 'Screening notes');
 };
-createScreeningNotesButton.className = 'ct-button ct-add-screening-notes-button';
+createScreeningNotesButton.className = `${styles.button} ${styles.addScreeningNotesButton}`;
 
 const createTechInterviewNotesButton = document.createElement('button');
 createTechInterviewNotesButton.innerText = 'Add "Tech interview notes"';
 createTechInterviewNotesButton.onclick = () => {
   createGoogleDoc('techInterviewNotes', 'Tech interview notes');
 };
-createTechInterviewNotesButton.className = 'ct-button ct-add-tech-interview-notes-button';
+createTechInterviewNotesButton.className = `${styles.button} ${styles.addTechInterviewNotesButton}`;
 
 const settingsButton = document.createElement('button');
 settingsButton.innerText = 'Settings';
 settingsButton.onclick = showSettingsModal;
-settingsButton.className = 'ct-button';
+settingsButton.className = styles.button;
 settingsButton.innerHTML = `
   <svg width="20" height="19" fill="none" xmlns="http://www.w3.org/2000/svg" class="CogIcon__component__36HIb">
     <path fill-rule="evenodd" clip-rule="evenodd" d="M19.061 10.73V8.254h-2.69c-.174-.716-.457-1.8-.832-2.412l1.903-1.895-2.345-2.334-1.903 1.895c-.614-.373-1.701-.656-2.42-.828V0H8.287v2.68c-.718.172-1.807.455-2.42.828L3.963 1.613 1.62 3.947l1.903 1.896c-.375.61-.658 1.695-.832 2.41H0v2.477h2.69c.174.715.457 1.8.832 2.41L1.62 15.037l2.344 2.335 1.903-1.896c.614.374 1.703.656 2.421.83v2.678h2.487v-2.679c.719-.173 1.807-.455 2.42-.828l1.904 1.895 2.344-2.335-1.903-1.895c.375-.612.658-1.696.832-2.411h2.69zm-9.53 2.476A3.722 3.722 0 015.8 9.492a3.722 3.722 0 013.73-3.714c2.06 0 3.729 1.662 3.729 3.714a3.722 3.722 0 01-3.73 3.714z"></path>
   </svg>`;
 
 const containerElement = document.createElement('div');
-containerElement.className = 'main-buttons-container';
+containerElement.className = styles.mainButtonsContainer;
 const areButtonsSubmerged = true;
 if (areButtonsSubmerged) {
-  containerElement.classList.add('main-buttons-container-submerged');
+  containerElement.classList.add(styles.mainButtonsContainerSubmerged);
 }
 
 const handleElement = document.createElement('div');
-handleElement.className = 'main-buttons-container-handle';
+handleElement.className = styles.mainButtonsContainerHandle;
 handleElement.onclick = () => {
-  containerElement.classList.toggle('main-buttons-container-submerged');
+  containerElement.classList.toggle(styles.mainButtonsContainerSubmerged);
 };
 
 const errorsElement = document.createElement('div');
-errorsElement.className = 'main-buttons-container-messages';
+errorsElement.className = styles.mainButtonsContainerMessages;
 containerElement.appendChild(errorsElement);
 const { showMessage } = makeMessenger(errorsElement);
 
 const buttonsWrapElement = document.createElement('div');
-buttonsWrapElement.className = 'buttons-wrap';
+buttonsWrapElement.className = styles.buttonsWrap;
 
 buttonsWrapElement.appendChild(settingsButton);
 buttonsWrapElement.appendChild(createScreeningNotesButton);
@@ -165,7 +168,7 @@ async function createGoogleDoc(templateType, templateTitle) {
   }
 
   showMessage('Please wait...', 'info');
-  containerElement.classList.add('main-buttons-container--busy');
+  containerElement.classList.add(styles.mainButtonsContainerBusy);
 
   const copyFileResult = await copyFile(templateDocumentId, newDocumentName, copyFolderId);
 
@@ -207,7 +210,7 @@ async function createGoogleDoc(templateType, templateTitle) {
   console.log(copyFileResult.webViewLink);
   await postDocumentUrl(copyFileResult.webViewLink, templateTitle);
   showMessage('Done!', 'success', 3000);
-  containerElement.classList.remove('main-buttons-container--busy');
+  containerElement.classList.remove(styles.mainButtonsContainerBusy);
 }
 
 async function postDocumentUrl(documentUrl, templateTitle) {
@@ -289,18 +292,18 @@ function handleClientLoad() {
 
 function showSettingsModal() {
   const settingsModalElement = document.createElement('div');
-  settingsModalElement.className = 'candidate-templates-settings-modal';
+  settingsModalElement.className = styles.candidateTemplatesSettingsModal;
 
   settingsModalElement.addEventListener('click', handleAddEntryClick);
   settingsModalElement.addEventListener('click', handleDeleteEntryClick);
   settingsModalElement.addEventListener('click', (event) => {
-    if (event.target.classList.contains('close-icon-content')) {
+    if (event.target.classList.contains(styles.closeIconContent)) {
       settingsModalElement.remove();
     }
   });
 
   settingsModalElement.addEventListener('click', (event) => {
-    if (event.target.classList.contains('choose-button')) {
+    if (event.target.classList.contains(styles.chooseButton)) {
       const pickerType = event.target.dataset.fieldType.includes('Folder')
         ? google.picker.ViewId.FOLDERS
         : google.picker.ViewId.DOCUMENTS;
@@ -347,13 +350,13 @@ function showSettingsModal() {
   contentElement.insertAdjacentHTML(
     'beforeend',
     `
-      <div class="close-icon">
-        <span class="close-icon-content"></span>
+      <div class="${styles.closeIcon}">
+        <span class="${styles.closeIconContent}"></span>
       </div>`
   );
 
   const authorizationButtonsContainer = document.createElement('div');
-  authorizationButtonsContainer.className = 'authorization-buttons-container';
+  authorizationButtonsContainer.className = styles.authorizationButtonsContainer;
   authorizationButtonsContainer.appendChild(authorizeButton);
   authorizationButtonsContainer.appendChild(signOutButton);
   contentElement.appendChild(authorizationButtonsContainer);
@@ -361,48 +364,8 @@ function showSettingsModal() {
   document.body.appendChild(settingsModalElement);
 }
 
-function createEntryHtml({
-  entryId,
-  positionName = '',
-  screeningNotesTemplate = '',
-  techInterviewNotesTemplate = '',
-  techInterviewNotesFolder = '',
-}) {
-  return `
-      <div class="entry" data-entry-id="${entryId}">
-
-        <div class="entry-row">
-          <label>Position name</label>
-          <input type="text" data-field-type="positionName" data-entry-id="${entryId}" value="${positionName}" />
-        </div>
-
-        <div class="entry-row">
-          <label>Screening notes template</label>
-          <div class="entry-input-with-picker">
-            <input type="text" disabled data-entry-id="${entryId}" data-field-type="screeningNotesTemplate" value="${screeningNotesTemplate.documentName}" />
-            <button class="choose-button" data-entry-id="${entryId}" data-field-type="screeningNotesTemplate">Choose</button>
-          </div>
-        </div>
-       
-        <div class="entry-row">
-          <label>Tech interview notes template</label>
-          <div class="entry-input-with-picker">
-            <input type="text" disabled data-entry-id="${entryId}" data-field-type="techInterviewNotesTemplate" value="${techInterviewNotesTemplate.documentName}" />
-            <button class="choose-button" data-entry-id="${entryId}" data-field-type="techInterviewNotesTemplate">Choose</button>
-          </div>
-        </div>
-     
-        <div class="entry-row">
-          <label>Tech interview notes folder</label>
-          <div class="entry-input-with-picker">
-            <input type="text" disabled data-entry-id="${entryId}" data-field-type="techInterviewNotesFolder" value="${techInterviewNotesFolder.folderName}" />
-            <button class="choose-button" data-entry-id="${entryId}" data-field-type="techInterviewNotesFolder">Choose</button>
-          </div>
-        </div>
-
-        <button class="delete-entry-button entry-row" data-entry-id="${entryId}">Delete template</button>
-      </div>
-    `;
+function createEntryHtml(entry) {
+  return renderTemplate(entryTemplate)({ ...entry, styles });
 }
 
 function getCandidatePosition() {
@@ -414,7 +377,7 @@ function getCandidatePosition() {
 }
 
 function handleAddEntryClick(event) {
-  if (event.target.classList.contains('add-entry-button')) {
+  if (event.target.classList.contains(styles.addEntryButton)) {
     const entry = createEmptyEntry();
 
     const candidatePosition = getCandidatePosition();
@@ -433,7 +396,9 @@ function handleDeleteEntryClick(event) {
     const { entryId } = event.target.dataset;
     deleteEntryFromState(entryId);
 
-    const rowToRemove = document.querySelector(`.entries-container .entry[data-entry-id="${entryId}"]`);
+    const rowToRemove = document.querySelector(
+      `.${styles.entriesContainer} .${styles.entry}[data-entry-id="${entryId}"]`
+    );
     rowToRemove.remove();
   }
 }
@@ -469,17 +434,17 @@ function makeModalContentHtml(settings) {
   const entriesHtml = settings.entries.map((entry) => createEntryHtml(entry)).join('');
 
   return `
-    <div class="candidate-templates-settings-modal-content">
-      <div class="screening-notes-row">
+    <div class="${styles.candidateTemplatesSettingsModalContent}">
+      <div class="${styles.screeningNotesRow}">
         <label>Screening notes folder</label>
-        <div class="entry-input-with-picker">
+        <div class="${styles.entryInputWithPicker}">
           <input type="text" disabled data-field-type="screeningNotesFolder" value="${settings.screeningNotesFolder.folderName}" />
-          <button class="choose-button" data-field-type="screeningNotesFolder">Choose</button>
+          <button class="${styles.chooseButton}" data-field-type="screeningNotesFolder">Choose</button>
         </div>
       </div>
-      <div class="entries-container">
+      <div class="${styles.entriesContainer}">
         ${entriesHtml}
-        <button class="add-entry-button">Add template</button>
+        <button class="${styles.addEntryButton}">Add template</button>
       </div>
     </div>
   `;

@@ -25,7 +25,19 @@ module.exports = (env) => {
       rules: [
         {
           test: /\.css$/i,
-          use: ['style-loader', 'css-loader'],
+          use: [
+            'style-loader',
+            {
+              loader: 'css-loader',
+              options: {
+                modules: true,
+              },
+            },
+          ],
+        },
+        {
+          test: /\.tpl$/i,
+          use: 'html-loader',
         },
       ],
     },

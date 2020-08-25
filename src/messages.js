@@ -1,7 +1,9 @@
+import styles from './style.css';
+
 const MESSAGE_CLASSES_BY_TYPE = {
-  info: 'ct-message--info',
-  error: 'ct-message--error',
-  success: 'ct-message--success',
+  info: styles.messageInfo,
+  error: styles.messageError,
+  success: styles.messageSuccess,
 };
 
 const MESSAGE_CLASSES = Object.values(MESSAGE_CLASSES_BY_TYPE);
