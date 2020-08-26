@@ -207,3 +207,19 @@
 .addEntryButton {
   margin-bottom: 4px;
 }
+
+.authorizeButton {
+  display: inline;
+}
+
+.signOutButton {
+  display: none;
+}
+
+.authorized .authorizeButton {
+  display: none;
+}
+
+.authorized .signOutButton {
+  display: inline;
+}

@@ -6,11 +6,12 @@ import {
   changeState,
   isPositionAlreadyInSettings,
 } from './state';
-import { wait } from './utils';
+import { htmlToDom, wait } from './utils';
 import makeMessenger from './messages';
 import styles from './style.css';
 
 import entryTemplate from './entry.tpl';
+import modalTemplate from './modal.tpl';
 
 const CLIENT_ID = process.env.CLIENT_ID;
 const APP_ID = process.env.APP_ID;
@@ -23,12 +24,6 @@ var DISCOVERY_DOCS = [
 var SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
 let pickerApiLoaded = false;
-
-const authorizeButton = document.createElement('button');
-authorizeButton.innerText = 'Authorize';
-
-const signOutButton = document.createElement('button');
-signOutButton.innerText = 'Sign out';
 
 const createScreeningNotesButton = document.createElement('button');
 createScreeningNotesButton.innerText = 'Add "Screening notes"';
@@ -82,13 +77,20 @@ containerElement.appendChild(buttonsWrapElement);
 containerElement.appendChild(handleElement);
 document.body.appendChild(containerElement);
 
+let isAuthorized = false;
+
 function updateSigninStatus(isSignedIn) {
-  if (isSignedIn) {
-    authorizeButton.style.display = 'none';
-    signOutButton.style.display = 'inline';
+  isAuthorized = isSignedIn;
+
+  const settingsModalElement = document.querySelector(`.${styles.candidateTemplatesSettingsModal}`);
+  if (!settingsModalElement) {
+    return;
+  }
+
+  if (isAuthorized) {
+    settingsModalElement.classList.add(styles.authorized);
   } else {
-    authorizeButton.style.display = 'inline';
-    signOutButton.style.display = 'none';
+    settingsModalElement.classList.remove(styles.authorized);
   }
 }
 
@@ -227,14 +229,6 @@ async function postDocumentUrl(documentUrl, templateTitle) {
   document.querySelector('.ProseMirror').innerHTML = '';
 }
 
-function handleAuthClick(event) {
-  gapi.auth2.getAuthInstance().signIn();
-}
-
-function handleSignoutClick(event) {
-  gapi.auth2.getAuthInstance().signOut();
-}
-
 function initClient() {
   gapi.client
     .init({
@@ -250,8 +244,6 @@ function initClient() {
 
         // Handle the initial sign-in state.
         updateSigninStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
-        authorizeButton.onclick = handleAuthClick;
-        signOutButton.onclick = handleSignoutClick;
       },
       function (error) {
         console.log(JSON.stringify(error, null, 2));
@@ -290,9 +282,25 @@ function handleClientLoad() {
   gapi.load('picker', { callback: onPickerApiLoad });
 }
 
+function handleAuthorizeClick(event) {
+  gapi.auth2.getAuthInstance().signIn();
+}
+
+function handleSignoutClick(event) {
+  gapi.auth2.getAuthInstance().signOut();
+}
+
 function showSettingsModal() {
-  const settingsModalElement = document.createElement('div');
-  settingsModalElement.className = styles.candidateTemplatesSettingsModal;
+  const savedSettings = readSettingsFromLocalStorage();
+
+  const entriesHtml = savedSettings.entries.map((entry) => createEntryHtml(entry)).join('');
+  const settingsModalHtml = makeModalContentHtml(savedSettings, entriesHtml);
+
+  const settingsModalElement = htmlToDom(settingsModalHtml);
+
+  if (isAuthorized) {
+    settingsModalElement.classList.add(styles.authorized);
+  }
 
   settingsModalElement.addEventListener('click', handleAddEntryClick);
   settingsModalElement.addEventListener('click', handleDeleteEntryClick);
@@ -337,29 +345,15 @@ function showSettingsModal() {
     }
   });
 
+  settingsModalElement.addEventListener('click', (event) => {
+    if (event.target.classList.contains(styles.authorizeButton)) {
+      handleAuthorizeClick();
+    } else if (event.target.classList.contains(styles.signOutButton)) {
+      handleSignoutClick();
+    }
+  });
+
   settingsModalElement.addEventListener('input', handleFieldChange);
-
-  const savedSettings = readSettingsFromLocalStorage();
-
-  const modalContentHtml = makeModalContentHtml(savedSettings);
-
-  settingsModalElement.innerHTML = modalContentHtml;
-
-  const contentElement = settingsModalElement.firstElementChild;
-
-  contentElement.insertAdjacentHTML(
-    'beforeend',
-    `
-      <div class="${styles.closeIcon}">
-        <span class="${styles.closeIconContent}"></span>
-      </div>`
-  );
-
-  const authorizationButtonsContainer = document.createElement('div');
-  authorizationButtonsContainer.className = styles.authorizationButtonsContainer;
-  authorizationButtonsContainer.appendChild(authorizeButton);
-  authorizationButtonsContainer.appendChild(signOutButton);
-  contentElement.appendChild(authorizationButtonsContainer);
 
   document.body.appendChild(settingsModalElement);
 }
@@ -430,24 +424,8 @@ function createEmptyEntry() {
   };
 }
 
-function makeModalContentHtml(settings) {
-  const entriesHtml = settings.entries.map((entry) => createEntryHtml(entry)).join('');
-
-  return `
-    <div class="${styles.candidateTemplatesSettingsModalContent}">
-      <div class="${styles.screeningNotesRow}">
-        <label>Screening notes folder</label>
-        <div class="${styles.entryInputWithPicker}">
-          <input type="text" disabled data-field-type="screeningNotesFolder" value="${settings.screeningNotesFolder.folderName}" />
-          <button class="${styles.chooseButton}" data-field-type="screeningNotesFolder">Choose</button>
-        </div>
-      </div>
-      <div class="${styles.entriesContainer}">
-        ${entriesHtml}
-        <button class="${styles.addEntryButton}">Add template</button>
-      </div>
-    </div>
-  `;
+function makeModalContentHtml(settings, entriesHtml) {
+  return renderTemplate(modalTemplate)({ settings, styles, entriesHtml });
 }
 
 const googleApiScriptElement = document.createElement('script');

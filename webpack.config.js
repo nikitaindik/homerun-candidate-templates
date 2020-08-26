@@ -30,7 +30,9 @@ module.exports = (env) => {
             {
               loader: 'css-loader',
               options: {
-                modules: true,
+                modules: {
+                  localIdentName: '[local]--[hash:base64:5]',
+                },
               },
             },
           ],
@@ -42,5 +44,6 @@ module.exports = (env) => {
       ],
     },
     plugins: [new Dotenv()].concat(isProductionBuild ? [new WrapperPlugin({ header: userscriptHeader })] : []),
+    devtool: isProductionBuild ? false : 'eval-source-map',
   };
 };
