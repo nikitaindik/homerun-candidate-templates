@@ -1,7 +1,7 @@
 {
   "name": "homerun-candidate-templates",
   "title": "HomeRun Candidate Templates",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Easily create candidate interview notes from Google Docs templates",
   "author": "Nikita Indik",
   "homepage": "https://github.com/nikitaindik/homerun-candidate-templates",
