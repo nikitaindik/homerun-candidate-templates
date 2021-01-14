@@ -153,7 +153,7 @@ async function createGoogleDoc(templateType, templateTitle) {
     return;
   }
 
-  const candidateName = document.querySelector('[class^="CandidateProfile__candidate-name"]').innerText;
+  const candidateName = document.querySelector('[class^="CandidateProfileCard__name"]').innerText;
 
   const newDocumentName = `${candidateName} - ${candidatePosition} - ${templateTitle}`;
 
